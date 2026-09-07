@@ -42,3 +42,10 @@ MUST be in Spanish. Never translate domain terms like `Publicacion`,
 - Evaluate formulas from uploaded Excel files
 - Add donations/premium/AI in this phase (Track B — see ADR-003)
 - Make any field non-nullable without checking if real Excel data can be empty there
+
+## Review gate
+At the end of every stage, before the final commit, run a self-review
+against this file and the ADRs. Output a written report only (see standard
+template used in chat) — never ask open questions directly to the user
+inside a coding session; findings get routed through the human's separate
+planning conversation first.

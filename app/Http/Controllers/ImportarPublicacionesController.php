@@ -56,6 +56,10 @@ class ImportarPublicacionesController extends Controller
         } catch (Throwable $e) {
             // Mapeamos excepciones de dominio a 422 con mensaje específico.
             $codigo = match (true) {
+                // ExcepcionArchivoDemasiadoGrande → 413: inalcanzable vía esta ruta HTTP
+                // porque ImportarPublicacionesRequest::rules() valida max:5120 (5 MB) antes.
+                // Se mantiene como defensa en profundidad por si ImportarPublicaciones se
+                // invoca desde un contexto no HTTP (p. ej. comando artisan, job, tests).
                 $e instanceof ExcepcionArchivoDemasiadoGrande => 413,
                 $e instanceof ExcepcionDemasiadasFilas => 422,
                 $e instanceof ExcepcionArchivoConMacros => 422,

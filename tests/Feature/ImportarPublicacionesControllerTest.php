@@ -52,7 +52,7 @@ final class ImportarPublicacionesControllerTest extends TestCase
         $this->assertEquals(2, $response->json('importadas'));
     }
 
-    public function test_archivo_supera_5mb_devuelve_413(): void
+    public function test_archivo_supera_5mb_devuelve_422(): void
     {
         $ruta = $this->crearArchivoXlsxValido();
 

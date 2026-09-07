@@ -42,12 +42,13 @@ final class LectorExcelPublicacionesTest extends TestCase
             ['2024-02-20', '18:05:00', 'Tema Dos', 'Artista Dos', 'Rock', 'Reels', 'Foto', 30, 80000, 5000, 41.7, 300, 200, 150, 60, 'No', 'Notas varias'],
         ]);
 
-        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta);
+        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta, 1);
 
         $this->assertCount(2, $publicaciones);
         $this->assertContainsOnlyInstancesOf(Publicacion::class, $publicaciones);
 
         $primera = $publicaciones[0];
+        $this->assertSame(1, $primera->usuarioId);
         $this->assertSame('2024-01-15', $primera->fecha);
         $this->assertSame('12:30:00', $primera->horaPublicacion);
         $this->assertSame('Canción Uno', $primera->cancion);
@@ -67,6 +68,7 @@ final class LectorExcelPublicacionesTest extends TestCase
         $this->assertNull($primera->notas);
 
         $segunda = $publicaciones[1];
+        $this->assertSame(1, $segunda->usuarioId);
         $this->assertSame('Tema Dos', $segunda->cancion);
         $this->assertFalse($segunda->artistaNuevo);
         $this->assertSame('Notas varias', $segunda->notas);
@@ -84,7 +86,7 @@ final class LectorExcelPublicacionesTest extends TestCase
         $this->expectException(ExcepcionArchivoDemasiadoGrande::class);
         $this->expectExceptionMessage('tamaño máximo');
 
-        (new LectorExcelPublicaciones)->leer($ruta);
+        (new LectorExcelPublicaciones)->leer($ruta, 1);
     }
 
     public function test_rechaza_archivos_con_mas_de_2000_filas(): void
@@ -99,7 +101,7 @@ final class LectorExcelPublicacionesTest extends TestCase
         $this->expectException(ExcepcionDemasiadasFilas::class);
         $this->expectExceptionMessage('límite de 2000 filas');
 
-        (new LectorExcelPublicaciones)->leer($ruta);
+        (new LectorExcelPublicaciones)->leer($ruta, 1);
     }
 
     public function test_sanitiza_payloads_de_inyeccion_de_formulas(): void
@@ -110,10 +112,11 @@ final class LectorExcelPublicacionesTest extends TestCase
             ['2024-01-01', '12:00:00', '=1+1', '+cmd|"/c calc"!A0', '@SUM(1,2)', 'TikTok', '-123', 60, 100, 10, 5.0, 1, 2, 3, 4, 'No', '=HYPERLINK("http://mal.com","clic")'],
         ], $columnasDeTexto);
 
-        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta);
+        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta, 1);
 
         $this->assertCount(1, $publicaciones);
         $publicacion = $publicaciones[0];
+        $this->assertSame(1, $publicacion->usuarioId);
         $this->assertSame("'=1+1", $publicacion->cancion);
         $this->assertSame("'+cmd|\"/c calc\"!A0", $publicacion->artista);
         $this->assertSame("'@SUM(1,2)", $publicacion->genero);
@@ -133,7 +136,7 @@ final class LectorExcelPublicacionesTest extends TestCase
         $this->expectException(ExcepcionArchivoConMacros::class);
         $this->expectExceptionMessage('macros');
 
-        (new LectorExcelPublicaciones)->leer($ruta);
+        (new LectorExcelPublicaciones)->leer($ruta, 1);
     }
 
     public function test_interpreta_fechas_y_horas_reales_de_excel(): void
@@ -157,9 +160,10 @@ final class LectorExcelPublicacionesTest extends TestCase
         (new EscritorXlsx($libro))->save($ruta);
         $libro->disconnectWorksheets();
 
-        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta);
+        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta, 1);
 
         $this->assertCount(1, $publicaciones);
+        $this->assertSame(1, $publicaciones[0]->usuarioId);
         $this->assertSame('2024-05-06', $publicaciones[0]->fecha);
         $this->assertSame('07:06:00', $publicaciones[0]->horaPublicacion);
         $this->assertSame('Tema con fechas reales', $publicaciones[0]->cancion);
@@ -181,9 +185,10 @@ final class LectorExcelPublicacionesTest extends TestCase
         (new EscritorXlsx($libro))->save($ruta);
         $libro->disconnectWorksheets();
 
-        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta);
+        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta, 1);
 
         $this->assertCount(1, $publicaciones);
+        $this->assertSame(1, $publicaciones[0]->usuarioId);
         $this->assertSame('ab', $publicaciones[0]->cancion);
         $this->assertSame(150, $publicaciones[0]->vistas);
     }
@@ -204,9 +209,10 @@ final class LectorExcelPublicacionesTest extends TestCase
         (new EscritorXlsx($libro))->save($ruta);
         $libro->disconnectWorksheets();
 
-        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta);
+        $publicaciones = (new LectorExcelPublicaciones)->leer($ruta, 1);
 
         $this->assertCount(1, $publicaciones);
+        $this->assertSame(1, $publicaciones[0]->usuarioId);
         $this->assertSame('2024-05-06', $publicaciones[0]->fecha);
         $this->assertSame('Tema con fórmula de fecha', $publicaciones[0]->cancion);
     }
@@ -219,7 +225,7 @@ final class LectorExcelPublicacionesTest extends TestCase
         $this->expectException(ExcepcionArchivoInvalido::class);
         $this->expectExceptionMessage('firma de bytes');
 
-        (new LectorExcelPublicaciones)->leer($ruta);
+        (new LectorExcelPublicaciones)->leer($ruta, 1);
     }
 
     /**

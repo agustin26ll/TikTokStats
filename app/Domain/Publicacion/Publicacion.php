@@ -12,6 +12,7 @@ namespace App\Domain\Publicacion;
 final readonly class Publicacion
 {
     /**
+     * @param  int  $usuarioId  Identificador del usuario propietario de la publicación.
      * @param  string  $fecha  Fecha de publicación (ISO 8601, p. ej. 2024-01-15).
      * @param  string  $horaPublicacion  Hora de publicación (p. ej. 12:30:00).
      * @param  string  $cancion  Título de la canción.
@@ -31,6 +32,7 @@ final readonly class Publicacion
      * @param  string|null  $notas  Notas internas. Puede estar vacío en el Excel real.
      */
     public function __construct(
+        public int $usuarioId,
         public string $fecha,
         public string $horaPublicacion,
         public string $cancion,

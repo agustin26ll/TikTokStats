@@ -78,6 +78,7 @@ final class LectorExcelPublicaciones
     /**
      * Lee un archivo Excel y devuelve las publicaciones importadas.
      *
+     * @param  int  $usuarioId  Identificador del usuario propietario de las publicaciones.
      * @return list<Publicacion>
      *
      * @throws ExcepcionArchivoInvalido
@@ -86,7 +87,7 @@ final class LectorExcelPublicaciones
      * @throws ExcepcionDemasiadasFilas
      * @throws ExcepcionArchivoCorrupto
      */
-    public function leer(string $rutaArchivo): array
+    public function leer(string $rutaArchivo, int $usuarioId): array
     {
         $this->validarExistencia($rutaArchivo);
         $this->validarTamano($rutaArchivo);
@@ -115,7 +116,7 @@ final class LectorExcelPublicaciones
         }
 
         try {
-            return $this->construirPublicaciones($libro);
+            return $this->construirPublicaciones($libro, $usuarioId);
         } finally {
             $libro->disconnectWorksheets();
         }
@@ -202,7 +203,7 @@ final class LectorExcelPublicaciones
     /**
      * @return list<Publicacion>
      */
-    private function construirPublicaciones(Spreadsheet $libro): array
+    private function construirPublicaciones(Spreadsheet $libro, int $usuarioId): array
     {
         $hoja = $libro->getActiveSheet();
 
@@ -234,7 +235,7 @@ final class LectorExcelPublicaciones
                 continue;
             }
 
-            $publicaciones[] = $this->construirPublicacion($hoja, $numeroFila);
+            $publicaciones[] = $this->construirPublicacion($hoja, $numeroFila, $usuarioId);
         }
 
         return $publicaciones;
@@ -277,9 +278,10 @@ final class LectorExcelPublicaciones
         return false;
     }
 
-    private function construirPublicacion(Worksheet $hoja, int $numeroFila): Publicacion
+    private function construirPublicacion(Worksheet $hoja, int $numeroFila, int $usuarioId): Publicacion
     {
         return new Publicacion(
+            usuarioId: $usuarioId,
             fecha: $this->leerFecha($hoja, $numeroFila),
             horaPublicacion: $this->leerHora($hoja, $numeroFila),
             cancion: $this->leerTexto($hoja, $numeroFila, 'cancion'),
